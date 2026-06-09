@@ -2,11 +2,16 @@
 
 ## 1. Призначення
 
-DelgadoJS — легкий фронтенд-фреймворк для серверно-рендерених сайтів.
+DelgadoJS — легкий реактивний JavaScript-фреймворк для серверно-рендерених сайтів.
 
-Основна ціль — надати простоту Alpine.js при збереженні повного відокремлення HTML і JavaScript.
+Мета DelgadoJS — поєднати:
 
-Фреймворк орієнтований на:
+* простоту Alpine.js;
+* модульність Vue;
+* відсутність збірки;
+* відокремлення HTML від JavaScript.
+
+DelgadoJS призначений для:
 
 * FastAPI
 * Flask
@@ -14,9 +19,9 @@ DelgadoJS — легкий фронтенд-фреймворк для серве
 * Laravel
 * ASP.NET MVC
 * PHP
-* статичні сайти
+* статичних сайтів
 
-та інші проєкти, де HTML генерується на сервері.
+та інших проєктів, де HTML генерується на сервері.
 
 ---
 
@@ -24,17 +29,14 @@ DelgadoJS — легкий фронтенд-фреймворк для серве
 
 ## 2.1 HTML належить HTML
 
-Фреймворк працює поверх існуючої розмітки.
+DelgadoJS працює поверх існуючого DOM.
 
 Не підтримуються:
 
-```javascript
-template()
-render()
-virtual DOM
-```
-
-Компоненти не генерують HTML.
+* Virtual DOM
+* JSX
+* render-функції
+* шаблони всередині JavaScript
 
 HTML завжди знаходиться у html-файлах.
 
@@ -46,7 +48,7 @@ HTML завжди знаходиться у html-файлах.
 
 Не допускається:
 
-```html
+```html id="kq3p6r"
 <span x-text="count + 1"></span>
 
 <div x-show="users.length > 0"></div>
@@ -55,13 +57,6 @@ HTML завжди знаходиться у html-файлах.
 ```
 
 Вся логіка повинна знаходитися в компоненті.
-
-Дозволяється лише доступ до:
-
-* state
-* getters
-* methods
-* спеціальних змінних циклу
 
 ---
 
@@ -73,7 +68,7 @@ HTML завжди знаходиться у html-файлах.
 
 ## 2.4 Нульова конфігурація
 
-Фреймворк не потребує:
+DelgadoJS не потребує:
 
 * npm
 * webpack
@@ -85,27 +80,27 @@ HTML завжди знаходиться у html-файлах.
 
 # 3. Підключення
 
-```html
-<script type="module" src="/js/minijs.js"></script>
+```html id="6chgg5"
+<script type="module" src="/js/delgado.js"></script>
 ```
 
 або
 
-```html
+```html id="kvchwo"
 <script type="module">
-import Mini from "/js/minijs.js";
+import Delgado from "/js/delgado.js";
 
-Mini.start();
+Delgado.start();
 </script>
 ```
 
 ---
 
-# 4. Структура компонентів
+# 4. Структура проєкту
 
 За замовчуванням:
 
-```text
+```text id="g2zh1r"
 /components
     counter.js
     upload.js
@@ -121,7 +116,7 @@ Mini.start();
 
 HTML:
 
-```html
+```html id="lz5kgj"
 <div x-component="counter">
 
     <button @click="increment">+</button>
@@ -131,9 +126,9 @@ HTML:
 </div>
 ```
 
-Framework автоматично завантажує:
+DelgadoJS автоматично завантажує:
 
-```text
+```text id="55fkjg"
 /components/counter.js
 ```
 
@@ -143,23 +138,23 @@ Framework автоматично завантажує:
 
 HTML:
 
-```html
+```html id="2uc4f3"
 <div x-component="admin/users">
 ```
 
-Framework автоматично завантажує:
+DelgadoJS автоматично завантажує:
 
-```text
+```text id="e8wl08"
 /components/admin/users.js
 ```
 
-Підпапки підтримуються без обмежень.
+Глибина вкладеності не обмежується.
 
 ---
 
 # 7. Формат компонента
 
-```javascript
+```javascript id="09m4yu"
 export default {
 
     state: {
@@ -177,21 +172,21 @@ export default {
 
 # 8. Екземпляри компонентів
 
-Кожен елемент з атрибутом:
+Кожен елемент із директивою:
 
-```html
+```html id="l5txmq"
 <div x-component="counter">
 ```
 
-створює окремий екземпляр.
+створює окремий екземпляр компонента.
 
-```html
+```html id="5a8a4h"
 <div x-component="counter"></div>
 
 <div x-component="counter"></div>
 ```
 
-створюють два незалежні стани.
+мають незалежні стани.
 
 ---
 
@@ -199,19 +194,27 @@ export default {
 
 State є реактивним.
 
-```javascript
+Будь-яка зміна:
+
+```javascript id="x6u75d"
 this.state.count++;
 ```
 
-автоматично оновлює всі пов'язані елементи.
+або
+
+```javascript id="tcn9cq"
+this.state.count = 10;
+```
+
+автоматично оновлює пов'язані елементи DOM.
 
 ---
 
 # 10. Getters
 
-Компонент може визначати getters.
+Компоненти можуть містити getters.
 
-```javascript
+```javascript id="6hfpxo"
 export default {
 
     state: {
@@ -227,7 +230,7 @@ export default {
 
 HTML:
 
-```html
+```html id="glj4ls"
 <span x-text="nextCount"></span>
 ```
 
@@ -235,9 +238,9 @@ HTML:
 
 # 11. Методи
 
-Методи можуть змінювати state.
+Компонент може містити будь-які методи.
 
-```javascript
+```javascript id="7zn4k0"
 save() {
 
 }
@@ -247,13 +250,7 @@ toggle() {
 }
 ```
 
-Методи можуть бути async.
-
-```javascript
-async loadUsers() {
-
-}
-```
+Підтримуються async-методи.
 
 ---
 
@@ -263,7 +260,7 @@ async loadUsers() {
 
 Викликається після створення компонента.
 
-```javascript
+```javascript id="p9f5s0"
 init() {
 
 }
@@ -275,7 +272,7 @@ init() {
 
 Викликається перед знищенням компонента.
 
-```javascript
+```javascript id="s90qun"
 destroy() {
 
 }
@@ -285,17 +282,15 @@ destroy() {
 
 # 13. Директива x-text
 
-Встановлює textContent.
+Оновлює textContent.
 
-HTML:
-
-```html
+```html id="0wsh1m"
 <span x-text="count"></span>
 ```
 
 Дозволено:
 
-```html
+```html id="8wo6v3"
 <span x-text="count"></span>
 
 <span x-text="nextCount"></span>
@@ -303,7 +298,7 @@ HTML:
 
 Не дозволено:
 
-```html
+```html id="y10j80"
 <span x-text="count + 1"></span>
 ```
 
@@ -313,15 +308,13 @@ HTML:
 
 Керує видимістю елемента.
 
-HTML:
-
-```html
+```html id="w6eekj"
 <div x-show="isVisible">
 ```
 
-Якщо значення false:
+При значенні false:
 
-```css
+```css id="em5d87"
 display:none;
 ```
 
@@ -329,23 +322,17 @@ display:none;
 
 # 15. Директива x-model
 
-Двосторонній зв'язок.
+Двосторонній зв'язок між DOM та state.
 
-HTML:
-
-```html
+```html id="jlsqpc"
 <input x-model="username">
 ```
 
-Компонент:
-
-```javascript
+```javascript id="2ljvdk"
 state: {
     username: ""
 }
 ```
-
-Зміна будь-якої сторони автоматично оновлює іншу.
 
 ---
 
@@ -353,15 +340,13 @@ state: {
 
 Створює посилання на DOM-вузол.
 
-HTML:
-
-```html
+```html id="m34v42"
 <input x-ref="fileInput">
 ```
 
-Компонент:
+У компоненті:
 
-```javascript
+```javascript id="gmpa57"
 this.refs.fileInput
 ```
 
@@ -369,9 +354,9 @@ this.refs.fileInput
 
 # 17. Події
 
-## Синтаксис
+Підтримуються:
 
-```html
+```text id="cm6gnk"
 @click
 @input
 @change
@@ -380,7 +365,7 @@ this.refs.fileInput
 
 Приклад:
 
-```html
+```html id="9mqrlk"
 <button @click="save">
 ```
 
@@ -388,18 +373,10 @@ this.refs.fileInput
 
 # 18. Виклик методів
 
-HTML:
+Допускається лише ім'я методу.
 
-```html
+```html id="n54d90"
 <button @click="save">
-```
-
-Компонент:
-
-```javascript
-save() {
-
-}
 ```
 
 ---
@@ -408,16 +385,10 @@ save() {
 
 Не допускається:
 
-```html
+```html id="ndogkv"
 @click="save(user)"
-@click="save(1)"
 @click="save(id)"
-```
-
-Допускається лише ім'я методу:
-
-```html
-@click="save"
+@click="save(1)"
 ```
 
 ---
@@ -428,34 +399,28 @@ save() {
 
 Синтаксис:
 
-```html
+```html id="ly3mbm"
 <template x-for="users">
-
-    ...
 
 </template>
 ```
 
-Аргументом може бути лише:
+Аргументом може бути:
 
 * state-масив
 * getter, який повертає масив
 
 ---
 
-# 21. x-for через state
+# 21. Рендеринг списку
 
-Компонент:
-
-```javascript
+```javascript id="qdfz18"
 state: {
     users: []
 }
 ```
 
-HTML:
-
-```html
+```html id="mbu0i0"
 <template x-for="users">
 
     <div>
@@ -469,11 +434,9 @@ HTML:
 
 ---
 
-# 22. x-for через getter
+# 22. Getters для списків
 
-Компонент:
-
-```javascript
+```javascript id="u8h3w0"
 get activeUsers() {
 
     return this.state.users.filter(
@@ -483,9 +446,7 @@ get activeUsers() {
 }
 ```
 
-HTML:
-
-```html
+```html id="mnptgt"
 <template x-for="activeUsers">
 
 </template>
@@ -495,9 +456,9 @@ HTML:
 
 # 23. Спеціальні змінні циклу
 
-Всередині x-for доступні:
+Усередині x-for доступні:
 
-```text
+```text id="lr2u5z"
 $item
 $index
 ```
@@ -506,9 +467,9 @@ $index
 
 # 24. Доступ до властивостей елемента
 
-Дозволяється:
+Підтримуються вкладені властивості.
 
-```html
+```html id="jk42j5"
 <span x-text="$item.name"></span>
 
 <span x-text="$item.email"></span>
@@ -516,15 +477,13 @@ $index
 <span x-text="$item.address.city"></span>
 ```
 
-Підтримується доступ через крапку.
-
 ---
 
-# 25. Події всередині циклу
+# 25. Події всередині списків
 
 HTML:
 
-```html
+```html id="j6u7bh"
 <template x-for="users">
 
     <button @click="editUser">
@@ -538,15 +497,15 @@ HTML:
 
 Компонент:
 
-```javascript
+```javascript id="0eqc68"
 editUser(user) {
 
 }
 ```
 
-Framework автоматично передає:
+DelgadoJS автоматично викликає:
 
-```javascript
+```javascript id="9vb01r"
 editUser($item)
 ```
 
@@ -554,19 +513,19 @@ editUser($item)
 
 # 26. Реактивність списків
 
-Після зміни:
+Після змін:
 
-```javascript
+```javascript id="5jk5dm"
 this.state.users = newUsers;
 ```
 
 або
 
-```javascript
+```javascript id="1t0z2m"
 this.state.users.push(user);
 ```
 
-список оновлюється автоматично.
+DOM автоматично оновлюється.
 
 ---
 
@@ -574,19 +533,19 @@ this.state.users.push(user);
 
 Не підтримується:
 
-```html
+```html id="tdxmdw"
 <template x-for="users.filter(...)">
 ```
 
 Не підтримується:
 
-```html
+```html id="25whtr"
 <template x-for="items.sort(...)">
 ```
 
 Не підтримується:
 
-```html
+```html id="jlwmk7"
 <template x-for="(item,index) in users">
 ```
 
@@ -596,8 +555,8 @@ this.state.users.push(user);
 
 Необов'язкова.
 
-```javascript
-Mini.configure({
+```javascript id="96b8qv"
+Delgado.configure({
 
     componentsPath: "/components"
 
@@ -610,7 +569,7 @@ Mini.configure({
 
 HTML:
 
-```html
+```html id="spmbje"
 <div x-component="counter">
 
     <button @click="increment">
@@ -626,13 +585,13 @@ HTML:
 
 Файл:
 
-```text
+```text id="1z8wbm"
 /components/counter.js
 ```
 
 Код:
 
-```javascript
+```javascript id="q9s0v6"
 export default {
 
     state: {
@@ -650,28 +609,27 @@ export default {
 
 ---
 
-# 30. Не входить до v1
+# 30. Не входить до DelgadoJS v1
 
-Не підтримується:
+Не підтримуються:
 
 * Virtual DOM
 * JSX
-* Templates у JavaScript
+* шаблони в JavaScript
 * x-html
 * x-if
 * глобальний store
 * router
 * SSR hydration
 * key у списках
-* параметри у директивах
+* параметри в директивах
 * довільні JavaScript-вирази в HTML
 
 ---
 
-# 31. Головне правило фреймворку
+# 31. Головне правило DelgadoJS
 
 HTML використовується лише для опису структури інтерфейсу.
-
 Уся бізнес-логіка, обчислення, фільтрація, сортування та робота з даними виконуються виключно всередині JavaScript-компонентів.
+інші рішення ти можеш взяти з урахуванням того, що фреймворк має містити мінімум магії і неочевидності. якщо треба щось додаткове - то користувач має вказати це явно. плюс бажана розділення логіки і представлення
 
-Після цього документа вже можна переходити до окремої технічної специфікації ядра: механізму реактивності, завантажувача компонентів, парсера директив і життєвого циклу компонентів. Це буде вже документ для реалізації самого фреймворку, а не для його користувачів.
