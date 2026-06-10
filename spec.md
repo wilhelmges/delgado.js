@@ -2,14 +2,15 @@
 
 ## 1. Призначення
 
-DelgadoJS — легкий реактивний JavaScript-фреймворк для серверно-рендерених сайтів.
+DelgadoJS — легкий реактивний JavaScript-фреймворк для серверно-рендерених веб-додатків.
 
-Мета DelgadoJS — поєднати:
+Мета DelgadoJS:
 
-* простоту Alpine.js;
+* простота Alpine.js;
 * модульність Vue;
 * відсутність збірки;
-* відокремлення HTML від JavaScript.
+* відсутність Virtual DOM;
+* жорстке розділення HTML та JavaScript.
 
 DelgadoJS призначений для:
 
@@ -48,7 +49,7 @@ HTML завжди знаходиться у html-файлах.
 
 Не допускається:
 
-```html id="kq3p6r"
+```html
 <span x-text="count + 1"></span>
 
 <div x-show="users.length > 0"></div>
@@ -56,13 +57,13 @@ HTML завжди знаходиться у html-файлах.
 <button @click="save(user.id)"></button>
 ```
 
-Вся логіка повинна знаходитися в компоненті.
+Уся логіка виконується всередині компонентів.
 
 ---
 
 ## 2.3 Один компонент = один модуль
 
-Кожен компонент визначається окремим JavaScript-файлом.
+Кожен компонент визначається окремим JavaScript-модулем.
 
 ---
 
@@ -80,13 +81,13 @@ DelgadoJS не потребує:
 
 # 3. Підключення
 
-```html id="6chgg5"
+```html
 <script type="module" src="/js/delgado.js"></script>
 ```
 
 або
 
-```html id="kvchwo"
+```html
 <script type="module">
 import Delgado from "/js/delgado.js";
 
@@ -100,10 +101,9 @@ Delgado.start();
 
 За замовчуванням:
 
-```text id="g2zh1r"
+```text
 /components
     counter.js
-    upload.js
 
     /admin
         users.js
@@ -116,7 +116,7 @@ Delgado.start();
 
 HTML:
 
-```html id="lz5kgj"
+```html
 <div x-component="counter">
 
     <button @click="increment">+</button>
@@ -126,9 +126,9 @@ HTML:
 </div>
 ```
 
-DelgadoJS автоматично завантажує:
+Автоматично завантажується:
 
-```text id="55fkjg"
+```text
 /components/counter.js
 ```
 
@@ -138,13 +138,13 @@ DelgadoJS автоматично завантажує:
 
 HTML:
 
-```html id="2uc4f3"
+```html
 <div x-component="admin/users">
 ```
 
-DelgadoJS автоматично завантажує:
+Відповідає:
 
-```text id="e8wl08"
+```text
 /components/admin/users.js
 ```
 
@@ -154,15 +154,17 @@ DelgadoJS автоматично завантажує:
 
 # 7. Формат компонента
 
-```javascript id="09m4yu"
+```javascript
 export default {
 
     state: {
         count: 0
     },
 
-    increment() {
+    increment(event) {
+
         this.state.count++;
+
     }
 
 }
@@ -172,49 +174,93 @@ export default {
 
 # 8. Екземпляри компонентів
 
-Кожен елемент із директивою:
+Кожен елемент:
 
-```html id="l5txmq"
+```html
 <div x-component="counter">
 ```
 
 створює окремий екземпляр компонента.
 
-```html id="5a8a4h"
-<div x-component="counter"></div>
-
-<div x-component="counter"></div>
-```
-
-мають незалежні стани.
+Стани між екземплярами не розділяються.
 
 ---
 
-# 9. State
+# 9. API компонента
+
+Усередині компонента доступні:
+
+```javascript
+this.state
+this.props
+this.refs
+this.el
+```
+
+---
+
+## this.state
+
+Реактивний стан компонента.
+
+---
+
+## this.props
+
+Об'єкт, сформований із data-атрибутів кореневого елемента.
+
+---
+
+## this.refs
+
+Колекція x-ref.
+
+---
+
+## this.el
+
+Кореневий DOM-елемент компонента.
+
+---
+
+# 10. State
 
 State є реактивним.
 
-Будь-яка зміна:
+---
 
-```javascript id="x6u75d"
+## 10.1 Shallow Reactivity
+
+DelgadoJS відстежує лише зміни властивостей верхнього рівня.
+
+Працює:
+
+```javascript
 this.state.count++;
+
+this.state.user = {
+    ...this.state.user,
+    name: "John"
+};
 ```
 
-або
+Не гарантується:
 
-```javascript id="tcn9cq"
-this.state.count = 10;
+```javascript
+this.state.user.name = "John";
+
+this.state.users[0].name = "John";
 ```
 
-автоматично оновлює пов'язані елементи DOM.
+Для оновлення DOM необхідно змінити властивість верхнього рівня.
 
 ---
 
-# 10. Getters
+# 11. Getters
 
-Компоненти можуть містити getters.
+Компонент може містити getters.
 
-```javascript id="6hfpxo"
+```javascript
 export default {
 
     state: {
@@ -222,35 +268,13 @@ export default {
     },
 
     get nextCount() {
+
         return this.state.count + 1;
+
     }
 
 }
 ```
-
-HTML:
-
-```html id="glj4ls"
-<span x-text="nextCount"></span>
-```
-
----
-
-# 11. Методи
-
-Компонент може містити будь-які методи.
-
-```javascript id="7zn4k0"
-save() {
-
-}
-
-toggle() {
-
-}
-```
-
-Підтримуються async-методи.
 
 ---
 
@@ -260,7 +284,7 @@ toggle() {
 
 Викликається після створення компонента.
 
-```javascript id="p9f5s0"
+```javascript
 init() {
 
 }
@@ -270,9 +294,9 @@ init() {
 
 ## destroy()
 
-Викликається перед знищенням компонента.
+Викликається перед видаленням кореневого елемента компонента.
 
-```javascript id="s90qun"
+```javascript
 destroy() {
 
 }
@@ -280,55 +304,88 @@ destroy() {
 
 ---
 
-# 13. Директива x-text
+# 13. Async Init
 
-Оновлює textContent.
+Допускається:
 
-```html id="0wsh1m"
-<span x-text="count"></span>
+```javascript
+async init() {
+
+}
 ```
 
-Дозволено:
+DelgadoJS не очікує завершення init().
 
-```html id="8wo6v3"
-<span x-text="count"></span>
+Початковий рендеринг виконується негайно.
 
-<span x-text="nextCount"></span>
+---
+
+# 14. Props
+
+Props формуються з data-атрибутів кореневого елемента.
+
+HTML:
+
+```html
+<div
+    x-component="user-card"
+    data-user-id="15"
+    data-role="admin">
+</div>
 ```
 
-Не дозволено:
+У компоненті:
 
-```html id="y10j80"
-<span x-text="count + 1"></span>
+```javascript
+this.props.userId
+
+this.props.role
+```
+
+Імена автоматично конвертуються:
+
+```text
+data-user-id → userId
+data-company-name → companyName
 ```
 
 ---
 
-# 14. Директива x-show
+# 15. Директива x-text
+
+Оновлює textContent.
+
+```html
+<span x-text="count"></span>
+```
+
+---
+
+# 16. Директива x-show
 
 Керує видимістю елемента.
 
-```html id="w6eekj"
+```html
 <div x-show="isVisible">
 ```
 
 При значенні false:
 
-```css id="em5d87"
+```css
 display:none;
 ```
 
 ---
 
-# 15. Директива x-model
+# 17. Директива x-model
 
 Двосторонній зв'язок між DOM та state.
 
-```html id="jlsqpc"
+```html
 <input x-model="username">
 ```
 
-```javascript id="2ljvdk"
+```javascript
 state: {
     username: ""
 }
@@ -336,70 +393,114 @@ state: {
 
 ---
 
-# 16. Директива x-ref
+# 18. Директива x-ref
 
 Створює посилання на DOM-вузол.
 
-```html id="m34v42"
+```html
 <input x-ref="fileInput">
 ```
 
-У компоненті:
-
-```javascript id="gmpa57"
+```javascript
 this.refs.fileInput
 ```
 
 ---
 
-# 17. Події
+# 19. Розв'язання властивостей
+
+Усі директиви працюють лише з:
+
+1. state
+2. getters
+
+Пошук виконується саме в такому порядку.
+
+---
+
+Працює:
+
+```html
+<span x-text="count"></span>
+```
+
+```javascript
+state.count
+```
+
+або
+
+```javascript
+get count()
+```
+
+---
+
+Не допускається доступ до:
+
+```javascript
+this.props
+methods
+this.refs
+this.el
+```
+
+безпосередньо з шаблону.
+
+---
+
+# 20. Події
 
 Підтримуються:
 
-```text id="cm6gnk"
+```text
 @click
 @input
 @change
 @submit
 ```
 
-Приклад:
+---
 
-```html id="9mqrlk"
+# 21. Виклик методів
+
+Дозволено лише ім'я методу.
+
+```html
 <button @click="save">
 ```
 
 ---
-
-# 18. Виклик методів
-
-Допускається лише ім'я методу.
-
-```html id="n54d90"
-<button @click="save">
-```
-
----
-
-# 19. Заборонені вирази
 
 Не допускається:
 
-```html id="ndogkv"
+```html
+@click="save()"
+
 @click="save(user)"
-@click="save(id)"
+
 @click="save(1)"
 ```
 
 ---
 
-# 20. Директива x-for
+# 22. Обробники подій
+
+DelgadoJS передає лише DOM Event.
+
+```javascript
+save(event) {
+
+}
+```
+
+---
+
+# 23. x-for
 
 Використовується для рендерингу списків.
 
-Синтаксис:
-
-```html id="ly3mbm"
+```html
 <template x-for="users">
 
 </template>
@@ -412,81 +513,49 @@ this.refs.fileInput
 
 ---
 
-# 21. Рендеринг списку
-
-```javascript id="qdfz18"
-state: {
-    users: []
-}
-```
-
-```html id="mbu0i0"
-<template x-for="users">
-
-    <div>
-
-        <span x-text="$item.name"></span>
-
-    </div>
-
-</template>
-```
-
----
-
-# 22. Getters для списків
-
-```javascript id="u8h3w0"
-get activeUsers() {
-
-    return this.state.users.filter(
-        x => x.active
-    );
-
-}
-```
-
-```html id="mnptgt"
-<template x-for="activeUsers">
-
-</template>
-```
-
----
-
-# 23. Спеціальні змінні циклу
+# 24. Спеціальні змінні циклу
 
 Усередині x-for доступні:
 
-```text id="lr2u5z"
+```text
 $item
 $index
 ```
 
 ---
 
-# 24. Доступ до властивостей елемента
+Приклад:
 
-Підтримуються вкладені властивості.
+```html
+<template x-for="users">
 
-```html id="jk42j5"
-<span x-text="$item.name"></span>
+    <span x-text="$item.name"></span>
 
-<span x-text="$item.email"></span>
-
-<span x-text="$item.address.city"></span>
+</template>
 ```
 
 ---
 
-# 25. Події всередині списків
+# 25. Події всередині x-for
 
-HTML:
+DelgadoJS не передає автоматично:
 
-```html id="j6u7bh"
+* $item
+* $index
+* context
+
+в обробники подій.
+
+---
+
+Для передачі даних використовуються стандартні HTML-атрибути.
+
+```html
 <template x-for="users">
 
-    <button @click="editUser">
+    <button
+        data-id="$item.id"
+        @click="editUser">
 
         Edit
 
@@ -495,33 +564,24 @@ HTML:
 </template>
 ```
 
-Компонент:
+```javascript
+editUser(event) {
 
-```javascript id="0eqc68"
-editUser(user) {
+    const id =
+        event.target.dataset.id;
 
 }
-```
-
-DelgadoJS автоматично викликає:
-
-```javascript id="9vb01r"
-editUser($item)
 ```
 
 ---
 
 # 26. Реактивність списків
 
-Після змін:
+Працює:
 
-```javascript id="5jk5dm"
-this.state.users = newUsers;
-```
+```javascript
+this.state.users = users;
 
-або
-
-```javascript id="1t0z2m"
 this.state.users.push(user);
 ```
 
@@ -529,33 +589,37 @@ DOM автоматично оновлюється.
 
 ---
 
-# 27. Обмеження x-for
+# 27. Оновлення списків
+
+При будь-якій зміні джерела даних DelgadoJS повністю перебудовує список.
+
+Diffing не використовується.
+
+---
+
+# 28. Обмеження x-for
 
 Не підтримується:
 
-```html id="tdxmdw"
+```html
 <template x-for="users.filter(...)">
 ```
 
-Не підтримується:
-
-```html id="25whtr"
+```html
 <template x-for="items.sort(...)">
 ```
 
-Не підтримується:
-
-```html id="jlwmk7"
+```html
 <template x-for="(item,index) in users">
 ```
 
 ---
 
-# 28. Конфігурація
+# 29. Конфігурація
 
 Необов'язкова.
 
-```javascript id="96b8qv"
+```javascript
 Delgado.configure({
 
     componentsPath: "/components"
@@ -565,11 +629,23 @@ Delgado.configure({
 
 ---
 
-# 29. Мінімальний приклад
+# 30. Помилки завантаження
+
+Якщо компонент:
+
+* не знайдено;
+* містить синтаксичну помилку;
+* не може бути імпортований;
+
+DelgadoJS виводить помилку в console.error та пропускає ініціалізацію компонента.
+
+---
+
+# 31. Мінімальний приклад
 
 HTML:
 
-```html id="spmbje"
+```html
 <div x-component="counter">
 
     <button @click="increment">
@@ -585,20 +661,20 @@ HTML:
 
 Файл:
 
-```text id="1z8wbm"
+```text
 /components/counter.js
 ```
 
 Код:
 
-```javascript id="q9s0v6"
+```javascript
 export default {
 
     state: {
         count: 0
     },
 
-    increment() {
+    increment(event) {
 
         this.state.count++;
 
@@ -609,7 +685,7 @@ export default {
 
 ---
 
-# 30. Не входить до DelgadoJS v1
+# 32. Не входить до DelgadoJS v1
 
 Не підтримуються:
 
@@ -624,12 +700,14 @@ export default {
 * key у списках
 * параметри в директивах
 * довільні JavaScript-вирази в HTML
+* diffing
+* watchers
+* computed dependency tracking
 
 ---
 
-# 31. Головне правило DelgadoJS
+# 33. Головне правило DelgadoJS
 
 HTML використовується лише для опису структури інтерфейсу.
-Уся бізнес-логіка, обчислення, фільтрація, сортування та робота з даними виконуються виключно всередині JavaScript-компонентів.
-інші рішення ти можеш взяти з урахуванням того, що фреймворк має містити мінімум магії і неочевидності. якщо треба щось додаткове - то користувач має вказати це явно. плюс бажана розділення логіки і представлення
 
+Уся бізнес-логіка, обчислення, фільтрація, сортування та робота з даними виконуються виключно всередині JavaScript-компонентів.
