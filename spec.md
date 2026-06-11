@@ -1,713 +1,603 @@
-# DelgadoJS Framework Specification v1.0
+# DelgadoJS Specification v1.0
 
-## 1. Призначення
+## Purpose
 
-DelgadoJS — легкий реактивний JavaScript-фреймворк для серверно-рендерених веб-додатків.
+DelgadoJS is a minimal server-rendered web framework designed around **AI-First architecture**.
 
-Мета DelgadoJS:
+The framework prioritizes:
 
-* простота Alpine.js;
-* модульність Vue;
-* відсутність збірки;
-* відсутність Virtual DOM;
-* жорстке розділення HTML та JavaScript.
-
-DelgadoJS призначений для:
-
-* FastAPI
-* Flask
-* Django
-* Laravel
-* ASP.NET MVC
-* PHP
-* статичних сайтів
-
-та інших проєктів, де HTML генерується на сервері.
+* explicit behavior
+* deterministic execution
+* minimal API surface
+* zero hidden conventions
+* easy understanding by both humans and AI agents
 
 ---
 
-# 2. Основні принципи
+# Core Principles
 
-## 2.1 HTML належить HTML
+## Principle 1: No Hidden Behavior
 
-DelgadoJS працює поверх існуючого DOM.
+Any framework behavior must be discoverable through:
 
-Не підтримуються:
+* source code search
+* framework specification
 
-* Virtual DOM
-* JSX
-* render-функції
-* шаблони всередині JavaScript
-
-HTML завжди знаходиться у html-файлах.
+Developers and AI agents should never be required to guess behavior.
 
 ---
 
-## 2.2 JavaScript належить JavaScript
+## Principle 2: Explicit Over Implicit
 
-У шаблонах заборонено виконання довільного JavaScript-коду.
-
-Не допускається:
-
-```html
-<span x-text="count + 1"></span>
-
-<div x-show="users.length > 0"></div>
-
-<button @click="save(user.id)"></button>
-```
-
-Уся логіка виконується всередині компонентів.
-
----
-
-## 2.3 Один компонент = один модуль
-
-Кожен компонент визначається окремим JavaScript-модулем.
-
----
-
-## 2.4 Нульова конфігурація
-
-DelgadoJS не потребує:
-
-* npm
-* webpack
-* vite
-* babel
-* transpilation
-
----
-
-# 3. Підключення
-
-```html
-<script type="module" src="/js/delgado.js"></script>
-```
-
-або
-
-```html
-<script type="module">
-import Delgado from "/js/delgado.js";
-
-Delgado.start();
-</script>
-```
-
----
-
-# 4. Структура проєкту
-
-За замовчуванням:
+DelgadoJS always prefers:
 
 ```text
-/components
-    counter.js
-
-    /admin
-        users.js
-        roles.js
+Explicit registration
+Explicit state updates
+Explicit component lifecycle
 ```
 
----
-
-# 5. Компоненти
-
-HTML:
-
-```html
-<div x-component="counter">
-
-    <button @click="increment">+</button>
-
-    <span x-text="count"></span>
-
-</div>
-```
-
-Автоматично завантажується:
+over:
 
 ```text
-/components/counter.js
+Auto-discovery
+Magic reactivity
+Hidden conventions
 ```
 
 ---
 
-# 6. Вкладені папки
+## Principle 3: Single Way To Do Things
 
-HTML:
+Each framework feature should have exactly one official implementation pattern.
 
-```html
-<div x-component="admin/users">
+Multiple equivalent APIs are discouraged.
+
+---
+
+# Component System
+
+## Component Registration
+
+Components must be registered explicitly.
+
+### Allowed
+
+```js
+import UserCard from "./components/user-card.js";
+
+Delgado.component("user-card", UserCard);
 ```
 
-Відповідає:
+or
+
+```js
+createApp({
+    components: {
+        "user-card": UserCard
+    }
+});
+```
+
+### Forbidden
+
+Automatic component discovery.
+
+Examples:
 
 ```text
-/components/admin/users.js
+/components/user-card.js
+/components/UserCard.js
+/components/**/*.js
 ```
 
-Глибина вкладеності не обмежується.
+must never be scanned automatically.
 
 ---
 
-# 7. Формат компонента
+## Component Usage
 
-```javascript
+```html
+<div x-component="user-card"></div>
+```
+
+Resolution rule:
+
+```text
+x-component resolves only registered components.
+```
+
+No filesystem lookup is performed.
+
+---
+
+# Component Contract
+
+A component must export a plain object.
+
+Example:
+
+```js
 export default {
-
     state: {
         count: 0
     },
 
-    increment(event) {
+    methods: {
+        increment(ctx) {}
+    },
 
-        this.state.count++;
+    mounted(ctx) {},
 
-    }
+    unmounted(ctx) {}
+};
+```
 
+---
+
+# Component Context
+
+All component methods receive a context object.
+
+Example:
+
+```js
+increment(ctx) {
+    ctx.setState({
+        count: ctx.state.count + 1
+    });
 }
 ```
 
 ---
 
-# 8. Екземпляри компонентів
+## Context API
 
-Кожен елемент:
+Available properties:
 
-```html
-<div x-component="counter">
+```js
+ctx.state
+ctx.props
+ctx.refs
+ctx.el
+ctx.setState()
 ```
-
-створює окремий екземпляр компонента.
-
-Стани між екземплярами не розділяються.
 
 ---
 
-# 9. API компонента
+## Forbidden Context Access
 
-Усередині компонента доступні:
-
-```javascript
+```js
 this.state
 this.props
 this.refs
 this.el
 ```
 
----
-
-## this.state
-
-Реактивний стан компонента.
+The framework must not rely on `this`.
 
 ---
 
-## this.props
+# State Management
 
-Об'єкт, сформований із data-атрибутів кореневого елемента.
+## State Ownership
 
----
+Each component owns its state.
 
-## this.refs
+Example:
 
-Колекція x-ref.
-
----
-
-## this.el
-
-Кореневий DOM-елемент компонента.
-
----
-
-# 10. State
-
-State є реактивним.
-
----
-
-## 10.1 Shallow Reactivity
-
-DelgadoJS відстежує лише зміни властивостей верхнього рівня.
-
-Працює:
-
-```javascript
-this.state.count++;
-
-this.state.user = {
-    ...this.state.user,
-    name: "John"
-};
-```
-
-Не гарантується:
-
-```javascript
-this.state.user.name = "John";
-
-this.state.users[0].name = "John";
-```
-
-Для оновлення DOM необхідно змінити властивість верхнього рівня.
-
----
-
-# 11. Getters
-
-Компонент може містити getters.
-
-```javascript
-export default {
-
-    state: {
-        count: 5
-    },
-
-    get nextCount() {
-
-        return this.state.count + 1;
-
-    }
-
-}
-```
-
----
-
-# 12. Життєвий цикл
-
-## init()
-
-Викликається після створення компонента.
-
-```javascript
-init() {
-
-}
-```
-
----
-
-## destroy()
-
-Викликається перед видаленням кореневого елемента компонента.
-
-```javascript
-destroy() {
-
-}
-```
-
----
-
-# 13. Async Init
-
-Допускається:
-
-```javascript
-async init() {
-
-}
-```
-
-DelgadoJS не очікує завершення init().
-
-Початковий рендеринг виконується негайно.
-
----
-
-# 14. Props
-
-Props формуються з data-атрибутів кореневого елемента.
-
-HTML:
-
-```html
-<div
-    x-component="user-card"
-    data-user-id="15"
-    data-role="admin">
-</div>
-```
-
-У компоненті:
-
-```javascript
-this.props.userId
-
-this.props.role
-```
-
-Імена автоматично конвертуються:
-
-```text
-data-user-id → userId
-data-company-name → companyName
-```
-
----
-
-# 15. Директива x-text
-
-Оновлює textContent.
-
-```html
-<span x-text="count"></span>
-```
-
----
-
-# 16. Директива x-show
-
-Керує видимістю елемента.
-
-```html
-<div x-show="isVisible">
-```
-
-При значенні false:
-
-```css
-display:none;
-```
-
----
-
-# 17. Директива x-model
-
-Двосторонній зв'язок між DOM та state.
-
-```html
-<input x-model="username">
-```
-
-```javascript
+```js
 state: {
-    username: ""
+    count: 0
 }
 ```
 
 ---
 
-# 18. Директива x-ref
+## State Immutability Rule
 
-Створює посилання на DOM-вузол.
+Direct state mutation is forbidden.
 
-```html
-<input x-ref="fileInput">
-```
+### Forbidden
 
-```javascript
-this.refs.fileInput
-```
+```js
+ctx.state.count++;
 
----
+ctx.state.name = "John";
 
-# 19. Розв'язання властивостей
-
-Усі директиви працюють лише з:
-
-1. state
-2. getters
-
-Пошук виконується саме в такому порядку.
-
----
-
-Працює:
-
-```html
-<span x-text="count"></span>
-```
-
-```javascript
-state.count
-```
-
-або
-
-```javascript
-get count()
+ctx.state.user.name = "John";
 ```
 
 ---
 
-Не допускається доступ до:
+## State Updates
 
-```javascript
-this.props
-methods
-this.refs
-this.el
-```
+State can only be modified through:
 
-безпосередньо з шаблону.
-
----
-
-# 20. Події
-
-Підтримуються:
-
-```text
-@click
-@input
-@change
-@submit
-```
-
----
-
-# 21. Виклик методів
-
-Дозволено лише ім'я методу.
-
-```html
-<button @click="save">
-```
-
----
-
-Не допускається:
-
-```html
-@click="save()"
-
-@click="save(user)"
-
-@click="save(1)"
-```
-
----
-
-# 22. Обробники подій
-
-DelgadoJS передає лише DOM Event.
-
-```javascript
-save(event) {
-
-}
-```
-
----
-
-# 23. x-for
-
-Використовується для рендерингу списків.
-
-```html
-<template x-for="users">
-
-</template>
-```
-
-Аргументом може бути:
-
-* state-масив
-* getter, який повертає масив
-
----
-
-# 24. Спеціальні змінні циклу
-
-Усередині x-for доступні:
-
-```text
-$item
-$index
-```
-
----
-
-Приклад:
-
-```html
-<template x-for="users">
-
-    <span x-text="$item.name"></span>
-
-</template>
-```
-
----
-
-# 25. Події всередині x-for
-
-DelgadoJS не передає автоматично:
-
-* $item
-* $index
-* context
-
-в обробники подій.
-
----
-
-Для передачі даних використовуються стандартні HTML-атрибути.
-
-```html
-<template x-for="users">
-
-    <button
-        data-id="$item.id"
-        @click="editUser">
-
-        Edit
-
-    </button>
-
-</template>
-```
-
-```javascript
-editUser(event) {
-
-    const id =
-        event.target.dataset.id;
-
-}
-```
-
----
-
-# 26. Реактивність списків
-
-Працює:
-
-```javascript
-this.state.users = users;
-
-this.state.users.push(user);
-```
-
-DOM автоматично оновлюється.
-
----
-
-# 27. Оновлення списків
-
-При будь-якій зміні джерела даних DelgadoJS повністю перебудовує список.
-
-Diffing не використовується.
-
----
-
-# 28. Обмеження x-for
-
-Не підтримується:
-
-```html
-<template x-for="users.filter(...)">
-```
-
-```html
-<template x-for="items.sort(...)">
-```
-
-```html
-<template x-for="(item,index) in users">
-```
-
----
-
-# 29. Конфігурація
-
-Необов'язкова.
-
-```javascript
-Delgado.configure({
-
-    componentsPath: "/components"
-
+```js
+ctx.setState({
+    count: 10
 });
 ```
 
 ---
 
-# 30. Помилки завантаження
+## DOM Update Trigger
 
-Якщо компонент:
+Only `setState()` may trigger UI updates.
 
-* не знайдено;
-* містить синтаксичну помилку;
-* не може бути імпортований;
+Rule:
 
-DelgadoJS виводить помилку в console.error та пропускає ініціалізацію компонента.
+```text
+Direct mutation → No update
+
+setState() → Update allowed
+```
 
 ---
 
-# 31. Мінімальний приклад
+# Reactivity Model
 
-HTML:
+DelgadoJS does not implement automatic dependency tracking.
 
-```html
-<div x-component="counter">
-
-    <button @click="increment">
-
-        +
-
-    </button>
-
-    <span x-text="count"></span>
-
-</div>
-```
-
-Файл:
+Supported flow:
 
 ```text
-/components/counter.js
+setState()
+↓
+update framework bindings
+↓
+update DOM
 ```
 
-Код:
+---
 
-```javascript
-export default {
+## Unsupported Features
 
-    state: {
-        count: 0
-    },
+```text
+Proxy reactivity
+Dependency tracking
+Signals
+Watchers
+Computed values
+Virtual DOM
+```
 
-    increment(event) {
+---
 
-        this.state.count++;
+# Directives
 
-    }
+## x-text
 
+### Syntax
+
+```html
+<span x-text="count"></span>
+```
+
+### Contract
+
+```text
+count must reference a state key
+```
+
+### Effect
+
+```js
+element.textContent = state.count;
+```
+
+---
+
+## x-show
+
+### Syntax
+
+```html
+<div x-show="visible"></div>
+```
+
+### Effect
+
+If value is false:
+
+```js
+element.style.display = "none";
+```
+
+If value is true:
+
+```js
+element.style.display = "";
+```
+
+---
+
+### Forbidden Implementations
+
+```text
+visibility:hidden
+opacity:0
+remove element
+```
+
+---
+
+## x-model
+
+### Syntax
+
+```html
+<input x-model="name">
+```
+
+### Effect
+
+```text
+state.name ↔ input.value
+```
+
+Two-way binding is implemented through `setState()`.
+
+---
+
+## x-ref
+
+### Syntax
+
+```html
+<input x-ref="email">
+```
+
+### Access
+
+```js
+ctx.refs.email
+```
+
+---
+
+## x-for
+
+### Syntax
+
+```html
+<li x-for="users"></li>
+```
+
+### Contract
+
+```text
+users must reference an array
+```
+
+---
+
+### Rendering Rule
+
+Whenever the array changes through `setState()`:
+
+```text
+Clear rendered children
+Render all items again
+```
+
+---
+
+### Unsupported Features
+
+```text
+Keyed reconciliation
+Virtual DOM diffing
+Incremental list patching
+```
+
+---
+
+# Event System
+
+## Event Binding
+
+### Syntax
+
+```html
+<button x-click="save"></button>
+```
+
+---
+
+### Resolution
+
+```text
+save → methods.save
+```
+
+---
+
+### Method Signature
+
+```js
+methods: {
+    save(ctx, event) {}
 }
 ```
 
 ---
 
-# 32. Не входить до DelgadoJS v1
+## Forbidden Event Expressions
 
-Не підтримуються:
+```html
+<button x-click="save()">
 
-* Virtual DOM
-* JSX
-* шаблони в JavaScript
-* x-html
-* x-if
-* глобальний store
-* router
-* SSR hydration
-* key у списках
-* параметри в директивах
-* довільні JavaScript-вирази в HTML
-* diffing
-* watchers
-* computed dependency tracking
+<button x-click="save(id)">
+
+<button x-click="count++">
+
+<button x-click="user.name='John'">
+```
+
+Events may only reference component methods.
 
 ---
 
-# 33. Головне правило DelgadoJS
+# Lifecycle
 
-HTML використовується лише для опису структури інтерфейсу.
+## mounted
 
-Уся бізнес-логіка, обчислення, фільтрація, сортування та робота з даними виконуються виключно всередині JavaScript-компонентів.
+Executed after component initialization and DOM binding.
+
+```js
+mounted(ctx) {}
+```
+
+---
+
+## unmounted
+
+Executed before component removal.
+
+```js
+unmounted(ctx) {}
+```
+
+---
+
+# Template Rules
+
+Templates are declarative.
+
+Templates must not contain JavaScript expressions.
+
+---
+
+## Allowed
+
+```html
+<span x-text="count"></span>
+```
+
+---
+
+## Forbidden
+
+```html
+<span x-text="count + 1"></span>
+
+<div x-show="user.age > 18"></div>
+
+<button x-click="save(user.id)"></button>
+```
+
+---
+
+# Project Structure
+
+Recommended structure:
+
+```text
+src/
+├── app.js
+├── components/
+│   ├── user-card.js
+│   └── user-list.js
+├── pages/
+├── services/
+└── templates/
+```
+
+---
+
+# AI Contract
+
+The following rules are considered stable public API.
+
+## Component API
+
+```yaml
+component_api:
+  - state
+  - props
+  - refs
+  - el
+  - setState
+```
+
+---
+
+## Method Contract
+
+```yaml
+methods:
+  receive_ctx: true
+```
+
+---
+
+## State Contract
+
+```yaml
+state:
+  mutable: false
+  update_method: setState
+```
+
+---
+
+## DOM Update Contract
+
+```yaml
+dom_updates:
+  trigger: setState
+```
+
+---
+
+## Component Resolution Contract
+
+```yaml
+component_loading:
+  mode: explicit_registration
+```
+
+---
+
+## Template Contract
+
+```yaml
+template_expressions:
+  allowed: false
+```
+
+---
+
+# Forbidden Framework Features
+
+The following concepts are explicitly outside the scope of DelgadoJS:
+
+```yaml
+forbidden:
+  - virtual_dom
+  - dependency_tracking
+  - signals
+  - computed
+  - watchers
+  - automatic_component_discovery
+  - implicit_state_mutation
+  - template_expressions
+  - this_context
+  - runtime_compilation
+  - filesystem_component_resolution
+```
+
+---
+
+# Framework Guarantee
+
+DelgadoJS guarantees that:
+
+1. All component resolution is explicit.
+2. All state updates occur through `setState()`.
+3. All template behavior is declarative.
+4. No hidden runtime conventions exist.
+5. Every framework behavior can be derived from this specification.
+6. AI agents can understand framework behavior without inspecting framework internals.
